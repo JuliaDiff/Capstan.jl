@@ -1,7 +1,19 @@
 # Capstan
 
-[![Build Status](https://travis-ci.org/jrevels/Capstan.jl.svg?branch=master)](https://travis-ci.org/jrevels/Capstan.jl)
+A WIP Cassette-based automatic differentiation package for the Julia language.
 
-[![Coverage Status](https://coveralls.io/repos/jrevels/Capstan.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jrevels/Capstan.jl?branch=master)
+This package is a prototype, and generally will not be usable by normal users until a stable
+version of Cassette is released (hopefully in the Julia 1.x timeframe).
 
-[![codecov.io](http://codecov.io/github/jrevels/Capstan.jl/coverage.svg?branch=master)](http://codecov.io/github/jrevels/Capstan.jl?branch=master)
+Planned features include:
+
+- forward-mode and reverse-mode operation
+- mixed-mode fused broadcast optimizations
+- works even with Julia code containing concrete dispatch/structural type constraints
+- works both on GPU and CPU
+- user-extensible scalar and tensor derivative definitions
+- API for custom perturbation seeding
+- configurable dynamic and static execution modes
+- nested/higher-order differentiation
+- tape-level sparsity optimizations
+- modular graph and variable storage formats
