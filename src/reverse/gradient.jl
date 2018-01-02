@@ -23,7 +23,7 @@ function forwardpass!(g::Gradient, input...)
     # TODO: perform static optimizations and reuse tape if `!(d.isdynamic)`
     empty!(g.tape)
     empty!(g.variables, g.wrt)
-    return overdub(g.context, g.func, g)(input...)
+    return overdub(g.context, g.func, metadata = g)(input...)
 end
 
 function reversepass!(g::Gradient, output)
