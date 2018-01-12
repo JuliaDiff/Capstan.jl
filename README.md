@@ -5,6 +5,9 @@ A WIP Cassette-based automatic differentiation package for the Julia language.
 This package is a prototype, and generally will not be usable by normal users until a stable
 version of Cassette is released (hopefully in the Julia 1.x timeframe).
 
+Capstan takes the stance that users should only ever have to think about
+the differentiability of their *algorithms*, not their *code*.
+
 Planned features include:
 
 - forward-mode and reverse-mode operation
