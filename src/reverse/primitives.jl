@@ -25,8 +25,8 @@ back!(::typeof(sum), x, y) = @propagate!(x, deriv(y))
 
 @primitive Base.:+(x, y)
 function back!(::typeof(+), x, y, z)
-    @propagate!(x, deriv(z) .* value(y))
-    @propagate!(y, deriv(z) .* value(x))
+    @propagate!(x, deriv(z))
+    @propagate!(y, deriv(z))
 end
 
 @primitive Base.:*(x, y)
