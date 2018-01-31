@@ -20,3 +20,4 @@ Planned features include:
 - nested/higher-order differentiation
 - tape-level sparsity optimizations
 - modular graph and variable storage formats
+- dependency analysis (e.g. simplifying multivariable chain rule application/compiling away needless additions)
