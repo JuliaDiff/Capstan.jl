@@ -4,13 +4,9 @@
 
 abstract type AbstractVariable end
 
-macro propagate!(x, Δ)
-    return esc(quote
-        (typeof($x) <: $AbstractVariable) && $incrderiv!($x, $Δ)
-    end)
-end
-
 value(x) = x
+
+incrdownstream!(x) = nothing
 
 ###########
 # Scalars #
@@ -62,52 +58,54 @@ value(x::ScalarVariable{T}) where {T} = (x.cache.values[x.index.index])::T
 
 deriv(x::ScalarVariable{T}) where {T} = (x.cache.derivs[x.index.index])::T
 
-incrderiv!(x::ScalarVariable, y) = (x.cache.derivs[x.index.index]::T += y; nothing)
+incrderiv!(x::ScalarVariable{T}, y) where {T} = (x.cache.derivs[x.index.index]::T += y; nothing)
 
 ###########
 # Tensors #
 ###########
-
-#=== TensorCache ===#
-
-struct TensorCache
-    derivs::ObjectIdDict
-    TensorCache() = new(ObjectIdDict())
-end
-
-hasvariable(cache::TensorCache, x) = haskey(cache.derivs, x)
-
-getvariable(cache::TensorCache, x) = TensorVariable(x, cache.derivs[x]::typeof(x))
-
-function addvariable!(cache::TensorCache, x)
-    @assert Capstan.istensor(x)
-    cache.derivs[x] = fill!(similar(x), zero(eltype(x)))
-    return x
-end
-
-Base.empty!(cache::TensorCache) = (empty!(cache.derivs); cache)
-
-function Base.empty!(cache::TensorCache, keep::Vector{UInt})
-    filter!(kv -> in(object_id(kv.first), keep), cache.derivs)
-    return cache
-end
-
-Base.delete!(cache::TensorCache, x) = (delete!(cache.derivs, x); cache)
-
-Base.length(cache::TensorCache) = length(cache.derivs)
 
 #=== TensorVariable ===#
 
 struct TensorVariable{T} <: AbstractVariable
     value::T
     deriv::T
+    downstream::RefValue{Int}
+    TensorVariable(x::T) where {T} = new{T}(x, fill!(similar(x), zero(eltype(x)), RefValue(0))
 end
 
 value(x::TensorVariable) = x.value
 
 deriv(x::TensorVariable) = x.deriv
 
-incrderiv!(x::TensorVariable, y) = (x.deriv .+= y; nothing)
+incrdownstream!(x::TensorVariable) = (x.downstream[] += 1; nothing)
+
+#=== TensorCache ===#
+
+struct TensorCache
+    variables::ObjectIdDict
+    TensorCache() = new(ObjectIdDict())
+end
+
+hasvariable(cache::TensorCache, x) = haskey(cache.variables, x)
+
+getvariable(cache::TensorCache, x) = cache.variables[x]::TensorVariable{typeof(x)}
+
+function addvariable!(cache::TensorCache, x)
+    @assert Capstan.istensor(x)
+    cache.variables[x] = TensorVariable(x)
+    return x
+end
+
+Base.empty!(cache::TensorCache) = (empty!(cache.variables); cache)
+
+function Base.empty!(cache::TensorCache, keep::Vector{UInt})
+    filter!(kv -> in(object_id(kv.first), keep), cache.variables)
+    return cache
+end
+
+Base.delete!(cache::TensorCache, x) = (delete!(cache.variables, x); cache)
+
+Base.length(cache::TensorCache) = length(cache.variables)
 
 #################
 # VariableCache #
@@ -136,3 +134,25 @@ function addvariable!(cache::VariableCache, x)
 end
 
 Base.empty!(cache::VariableCache, options...) = (empty!(cache.tensors, options...); empty!(cache.scalars); cache)
+
+###############
+# @propagate! #
+###############
+
+#=
+Using a macro here allows for delayed evaluation and syntactic fusion for load/add
+broadcast (i.e. the `.+=` can be fused with the interpolated `Δ` expression).
+=#
+macro propagate!(x, Δ)
+    return esc(quote
+        if isa($x, $ScalarVariable)
+            $incrderiv!($x, $Δ)
+        elseif isa($x, $TensorVariable)
+            if $(x).downstream > 1
+                $(x).deriv .+= $Δ
+            else
+                $(x).deriv .= $Δ
+            end
+        end
+    end)
+end

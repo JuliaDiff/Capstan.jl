@@ -103,7 +103,10 @@ function record!(g::Gradient, f, input, output)
     isdependent = any(hasvariable(g, x) for x in input)
     tracked = track!(g, output, isdependent)
     if isdependent
-        push!(g.tape, Instruction(f, variablize(g, input), variablize(g, tracked)))
+        input_variables = variablize(g, input)
+        output_variables = variablize(g, tracked)
+        tupleforeach(incrdownstream!, input_variables)
+        push!(g.tape, Instruction(f, input_variables, output_variables))
     end
     return tracked
 end
