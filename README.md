@@ -13,6 +13,7 @@ Planned features include:
 - forward-mode and reverse-mode operation
 - mixed-mode fused broadcast optimizations
 - works even with Julia code containing concrete dispatch/structural type constraints
+- complex differentiation
 - works both on GPU and CPU
 - user-extensible scalar and tensor derivative definitions
 - API for custom perturbation seeding
