@@ -15,7 +15,8 @@ for (M, f, arity) in DiffRules.diffrules()
     if arity == 1
         dfdx = DiffRules.diffrule(M, f, :vx)
         @eval begin
-            Cassette.@primitive ctx::FDiffCtx function (::typeof($f))(x::@Box)
+            Cassette.@primitive function (::typeof($f))(x::@Box) where {__CONTEXT__<:FDiffCtx}
+                ctx = __trace__.context
                 vx, dx = Cassette.unbox(ctx, x), Cassette.meta(ctx, x)
                 return Cassette.Box(ctx, $f(vx), propagate($dfdx, dx))
             end
@@ -23,16 +24,19 @@ for (M, f, arity) in DiffRules.diffrules()
     elseif arity == 2
         dfdx, dfdy = DiffRules.diffrule(M, f, :vx, :vy)
         @eval begin
-            Cassette.@primitive ctx::FDiffCtx function (::typeof($f))(x::@Box, y::@Box)
+            Cassette.@primitive function (::typeof($f))(x::@Box, y::@Box) where {__CONTEXT__<:FDiffCtx}
+                ctx = __trace__.context
                 vx, dx = Cassette.unbox(ctx, x), Cassette.meta(ctx, x)
                 vy, dy = Cassette.unbox(ctx, y), Cassette.meta(ctx, y)
                 return Cassette.Box(ctx, $f(vx, vy), propagate($dfdx, dx, $dfdy, dy))
             end
-            Cassette.@primitive ctx::FDiffCtx function (::typeof($f))(x::@Box, vy)
+            Cassette.@primitive function (::typeof($f))(x::@Box, vy) where {__CONTEXT__<:FDiffCtx}
+                ctx = __trace__.context
                 vx, dx = Cassette.unbox(ctx, x), Cassette.meta(ctx, x)
                 return Cassette.Box(ctx, $f(vx, vy), propagate($dfdx, dx))
             end
-            Cassette.@primitive ctx::FDiffCtx function (::typeof($f))(vx, y::@Box)
+            Cassette.@primitive function (::typeof($f))(vx, y::@Box) where {__CONTEXT__<:FDiffCtx}
+                ctx = __trace__.context
                 vy, dy = Cassette.unbox(ctx, y), Cassette.meta(ctx, y)
                 return Cassette.Box(ctx, $f(vx, vy), propagate($dfdy, dy))
             end

@@ -13,7 +13,9 @@ macro primitive(signature)
     # we use `$signature = begin...end` instead of `function $signature ... end`
     # here because of https://github.com/JuliaLang/julia/issues/25080
     return esc(quote
-        $Cassette.@primitive $Reverse.RDiffCtx $g::$Reverse.Gradient $signature = begin
+        $Cassette.@primitive $signature where {__CONTEXT__<:$Reverse.RDiffCtx,
+                                               __METADATA__<:$Reverse.Gradient} = begin
+            $g = __trace__.metadata
             $output = $Cassette.mapcall(x -> $Cassette.unbox($g.context, x), $f, $(args...))
             return $Reverse.record!($g, $f, ($(args...),), $output)
         end
