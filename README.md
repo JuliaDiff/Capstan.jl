@@ -1,23 +1,22 @@
 # Capstan
 
-A WIP Cassette-based automatic differentiation package for the Julia language.
+Cassette-based automatic differentiation for the Julia language.
 
-This package is a prototype, and generally will not be usable by normal users until a stable
-version of Cassette is released (hopefully in the Julia 1.x timeframe).
+Right now, this package is simply a proof-of-concept. It generally will not be usable by normal users until a stable version of Cassette is released (hopefully in the Julia 1.x timeframe). It also is not necessarily kept up-to-date with the latest version of Cassette.
 
-Capstan takes the stance that users should only ever have to think about
-the differentiability of their *algorithms*, not their *code*.
+Planned features for an initial release include:
 
-Planned features include:
-
-- forward-mode and reverse-mode operation
-- mixed-mode fused broadcast optimizations
-- works even with Julia code containing concrete dispatch/structural type constraints
-- complex differentiation
-- works both on GPU and CPU
+- no user-visible cumbersome custom array/number types
+- works even with concrete dispatch/structural type constraints
+- official support for complex differentiation
+- safe nested/higher-order differentiation
+- API for custom perturbation/sensitivity seeding
 - user-extensible scalar and tensor derivative definitions
-- API for custom perturbation seeding
+- mixed-mode fused broadcast optimizations
 - configurable dynamic and static execution modes
-- nested/higher-order differentiation
-- tape-level sparsity optimizations
-- dependency analysis (e.g. simplifying multivariable chain rule application/compiling away needless additions)
+
+Planned features for future releases include:
+
+- support for both GPU and CPU
+- higher-order sparsity exploitation (edge-pushing)
+- per-region dynamism for subgraphs
