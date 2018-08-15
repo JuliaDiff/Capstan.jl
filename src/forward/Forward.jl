@@ -7,10 +7,10 @@ import StaticArrays
 
 Cassette.@context ForwardCtx
 
-Cassette.metadatatype(::Type{<:ForwardCtx{Val{N}}}, ::Type{T}) where {N,T<:Real} = SVector{N,T}
-Cassette.metadatatype(::Type{<:ForwardCtx{Int}}, ::Type{T}) where {T<:Real} = Vector{T}
+Cassette.metadatatype(::Type{<:ForwardCtx{Val{N}}}, ::Type{T}) where {N,T<:Number} = SVector{N,T}
+Cassette.metadatatype(::Type{<:ForwardCtx{Int}}, ::Type{T}) where {T<:Number} = Vector{T}
 
-include("api.jl")
-# include("primitives.jl")
+include("wrt.jl")
+include("primitives.jl")
 
 end # module
