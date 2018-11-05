@@ -57,9 +57,9 @@ function reverse_rule(::@sigtype(F{R → R}⊗[R] → [R]), ::typeof(map), f, x)
         y, d = forward_rule(f_sig, f, x)
         y, d(one(x))
     end
-    # TODO: this could be done in a way which doesn't require extra
-    # temporaries (or preallocation, which is hard to do without inference
-    # hacks) if we had just had something akin to
+    # TODO: This should be doable without the extra temporaries or preallocation
+    # utilized here, but AFAICT such an approach is hard to write without
+    # relying on inference hacks unless we have something akin to
     # https://github.com/JuliaLang/julia/issues/22129
     applied_f_rule = map(f_rule, x)
     values = map(first, applied_f_rule)
