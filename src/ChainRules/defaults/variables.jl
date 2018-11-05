@@ -5,7 +5,9 @@ description(x::AbstractArray{<:Complex}) = Tensor(ComplexDomain(), layout(x))
 
 layout(x::Array) = Layout(length(x), size(x), true)
 
-# TODO:
-#   - StaticArrays
-#   - Base
-#   - LinearAlgebra
+#=
+TODO:
+    - StaticArrays
+    - Base
+    - LinearAlgebra
+=#
