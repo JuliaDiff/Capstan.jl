@@ -2,22 +2,22 @@
 
 function forward_rule(::@sigtype(R → R), ::typeof(sin), x)
     sinx, cosx = sincos(x)
-    return sinx, ẋ -> @forward_chain(cosx, ẋ)
+    return sinx, ẋ -> forward_chain(@_(cosx), ẋ)
 end
 
 #== `cos` ==#
 
 function forward_rule(::@sigtype(R → R), ::typeof(cos), x)
     sinx, cosx = sincos(x)
-    return cosx, ẋ -> @forward_chain(-sinx, ẋ)
+    return cosx, ẋ -> forward_chain(@_(-sinx), ẋ)
 end
 
 #== `sincos` ==#
 
 function forward_rule(::@sigtype(R → R⊗R), ::typeof(sincos), x)
     sinx, cosx = sincos(x)
-    return sinx, ẋ -> @forward_chain(cosx, ẋ),
-           cosx, ẋ -> @forward_chain(-sinx, ẋ)
+    return sinx, ẋ -> forward_chain(cosx, ẋ),
+           cosx, ẋ -> forward_chain(@_(-sinx), ẋ)
 end
 
 #== `atan` ==#
@@ -25,28 +25,30 @@ end
 function forward_rule(::@sigtype(R⊗R → R), ::typeof(atan), y, x)
     h = hypot(y, x)
     return atan(y, x),
-           (ẏ, ẋ) -> @forward_chain(x / h, ẏ, y / h, ẋ)
+           (ẏ, ẋ) -> forward_chain(@_(x / h), ẏ, @_(y / h), ẋ)
 end
 
 #== `sum` ==#
 
 function reverse_rule(::@sigtype([R] → R), ::typeof(sum), x)
     return sum(x),
-           (x̄, z̄) -> @reverse_chain!(x̄, z̄)
+           (x̄, z̄) -> reverse_chain!(x̄, @_(z̄))
 end
 
 #== `+` ==#
 
 function reverse_rule(::@sigtype([R]⊗[R] → R), ::typeof(+), x, y)
     return x + y,
-           (x̄, ȳ, z̄) -> (@reverse_chain!(x̄, z̄); @reverse_chain!(ȳ, z̄))
+           (x̄, ȳ, z̄) -> (reverse_chain!(x̄, @_(z̄)),
+                         reverse_chain!(ȳ, @_(z̄)))
 end
 
 #== `*` ==#
 
 function reverse_rule(::@sigtype([R]⊗[R] → R), ::typeof(*), x, y)
     return x * y,
-           (x̄, ȳ, z̄) -> (@reverse_chain!(x̄, z̄ * y'); @reverse_chain!(ȳ, x' * z̄))
+           (x̄, ȳ, z̄) -> (reverse_chain!(x̄, @_(z̄ * y')),
+                         reverse_chain!(ȳ, @_(x' * z̄)))
 end
 
 #== `map` ==#
@@ -64,5 +66,5 @@ function reverse_rule(::@sigtype(F{R → R}⊗[R] → [R]), ::typeof(map), f, x)
     applied_f_rule = map(f_rule, x)
     values = map(first, applied_f_rule)
     derivs = map(last, applied_f_rule)
-    return values, (x̄, z̄) -> @reverse_chain!(x̄, derivs .* z̄)
+    return values, (x̄, z̄) -> reverse_chain!(x̄, @_(broadcasted(*, derivs, z̄)))
 end
