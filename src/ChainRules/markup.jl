@@ -1,10 +1,4 @@
 #####
-##### `description`
-#####
-
-description(args::Tuple) = map(description, args)
-
-#####
 ##### `AbstractLayout`
 #####
 
