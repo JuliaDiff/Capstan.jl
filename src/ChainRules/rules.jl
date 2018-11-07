@@ -10,7 +10,7 @@ reverse_rule(::Signature, ::Any, ::Vararg{Any}) = nothing
 ##### `Thunk`
 #####
 
-macro _(body)
+macro thunk(body)
     return :(Thunk(() -> $(esc(body))))
 end
 
