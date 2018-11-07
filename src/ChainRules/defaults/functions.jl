@@ -1,8 +1,7 @@
 #=
-TODO: Define the required methods to cover all relevant types from:
-    - StaticArrays
-    - Base
-    - LinearAlgebra
+TODO: Define...
+    - ...moar rules
+    - ...moar complex/mode specializations
 =#
 
 #== `sin` ==#
@@ -10,6 +9,14 @@ TODO: Define the required methods to cover all relevant types from:
 function forward_rule(::@sig(R → R), ::typeof(sin), x)
     sinx, cosx = sincos(x)
     return sinx, ẋ -> forward_chain(@thunk(cosx), ẋ)
+end
+
+function forward_rule(::@sig(C → C), ::typeof(sin), x)
+    sinx, cosx = sincos(x)
+    # TODO: Does this convention for Wirtinger derivatives even make sense?
+    # For example, should we just have one chain function that returns a tuple
+    # instead of two chain functions?
+    return sinx, ẋ -> forward_chain(@thunk(cosx), ẋ), ẋ -> false
 end
 
 #== `cos` ==#
@@ -87,4 +94,24 @@ function reverse_rule(::@sig(_⊗[R] → [R]), ::typeof(map), f, x)
     values = map(first, applied_f_rule)
     derivs = map(last, applied_f_rule)
     return values, (x̄, z̄) -> reverse_chain!(x̄, @thunk(broadcasted(*, derivs, z̄)))
+end
+
+function reverse_rule(::@sig(_⊗[C] → [C]), ::typeof(map), f, x)
+    f_sig = Signature((Scalar(ComplexDomain()),), (Scalar(ComplexDomain()),))
+    f_rule = x -> begin
+        y, d, d⁺ = forward_rule(f_sig, f, x)
+        y, d(one(x)), d⁺(oftype(x, im)) # TODO: Is this even the right seeding at all? Probably not...
+    end
+    # TODO: Same allocation/temporaries issue as the real-valued version above.
+    # Additionally, it's unclear whether this is even the right way to do
+    # Wirtinger-style reverse propagation...
+    applied_f_rule = map(f_rule, x)
+    values = map(first, applied_f_rule)
+    primal_derivs = map(((x, y, z),) -> y, applied_f_rule)
+    conjugate_derivs = map(last, applied_f_rule)
+    # TODO: Same issue as in the complex forward-mode example above; is the right
+    # return convention for a reverse-mode complex primitive?
+    return values,
+           (x̄, z̄) -> reverse_chain!(x̄, @thunk(broadcasted(*, primal_derivs, z̄)))
+           (x̄, z̄) -> reverse_chain!(x̄, @thunk(broadcasted(*, conjugate_derivs, z̄)))
 end
