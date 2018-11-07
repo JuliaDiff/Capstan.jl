@@ -73,7 +73,7 @@ end
 
 #== `map` ==#
 
-function reverse_rule(::@sig(F⊗[R] → [R]), ::typeof(map), f, x)
+function reverse_rule(::@sig(_⊗[R] → [R]), ::typeof(map), f, x)
     f_sig = Signature((Scalar(RealDomain()),), (Scalar(RealDomain()),))
     f_rule = x -> begin
         y, d = forward_rule(f_sig, f, x)

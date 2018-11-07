@@ -41,25 +41,11 @@ input_count(sig::Signature) = sum(element_count, sig.input)
 
 output_count(sig::Signature) = sum(element_count, sig.output)
 
-#== `Func` ==#
+#== `Ignore` ==#
 
-#=
-Note that initially, this used to be:
+struct Ignore <: AbstractArgument end
 
-```
-struct Func{S <: Signature} <: AbstractArgument
-    signature::S
-end
-```
-
-While aesthetically nice (since it enables richer markup descriptions via nested
-function signatures), this capability seemed to confer no actual advantage in
-practice. On the contrary, it somewhat encourages over-specification in rule
-definition.
-=#
-struct Func <: AbstractArgument end
-
-element_count(::Func) = 0
+element_count(::Ignore) = 0
 
 #== `AbstractVariable` ==#
 
@@ -108,18 +94,21 @@ function parse_into_markup_type(x)
         return :(Scalar{RealDomain})
     elseif x === :C
         return :(Scalar{ComplexDomain})
-    elseif x === :F
-        return :(Func)
-    elseif isa(x, Expr) && x.head === :vect && length(x.args) === 1
-        domain = x.args[1]
-        if domain === :R
-            return :(Tensor{RealDomain})
-        elseif domain === :C
-            return :(Tensor{ComplexDomain})
-        elseif domain === :F
-            return :(Tensor{Func})
+    elseif x === :_
+        return :(Ignore)
+    elseif isa(x, Expr) && length(x.args) === 1
+        if x.head === :vect
+            domain = x.args[1]
+            if domain === :R
+                return :(Tensor{RealDomain})
+            elseif domain === :C
+                return :(Tensor{ComplexDomain})
+            end
+        elseif x.head === :braces
+            vararg_type = parse_into_markup_type(x.args[1])
+            return :(Vararg{$vararg_type})
         end
     end
-    error(string("Encountered unparseable signature element `", x, "`;",
+    error(string("Encountered unparseable signature element `", x, "`. ",
                  MALFORMED_SIG_ERROR_MESSAGE))
 end
