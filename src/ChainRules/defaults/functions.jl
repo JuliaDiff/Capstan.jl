@@ -20,6 +20,10 @@ function forward_rule(::@sigtype(R → R⊗R), ::typeof(sincos), x)
            cosx, ẋ -> forward_chain(@_(-sinx), ẋ)
 end
 
+function reverse_rule(::@sigtype(R → R⊗R), ::typeof(sincos), x)
+    # TODO
+end
+
 #== `atan` ==#
 
 function forward_rule(::@sigtype(R⊗R → R), ::typeof(atan), y, x)
