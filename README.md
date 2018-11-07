@@ -19,3 +19,5 @@ It's likely that not all of these features will make it into an initial release,
 - support for both GPU and CPU
 - higher-order sparsity exploitation (edge-pushing)
 - per-region dynamism for subgraphs
+
+Capstan's codebase follows the [YASGuide](https://github.com/jrevels/YASGuide).
