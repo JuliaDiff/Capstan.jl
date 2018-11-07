@@ -1,3 +1,10 @@
+#=
+TODO: Define the required methods to cover all relevant types from:
+    - StaticArrays
+    - Base
+    - LinearAlgebra
+=#
+
 #####
 ##### `description`
 #####
@@ -16,17 +23,12 @@ description(x::AbstractArray{<:Complex}) = Tensor(ComplexDomain(), layout(x))
 layout(x::Array) = Layout(length(x), size(x), true)
 
 #####
-##### propagation predicates
+##### adjoint interface
 #####
+
+value(x̄) = x̄
 
 should_increment(x̄) = true
 
-should_materialize_into(x̄) = false
-should_materialize_into(x̄::AbstractArray) = true
-
-#=
-TODO:
-    - StaticArrays
-    - Base
-    - LinearAlgebra
-=#
+should_materialize_into(x̄::Number) = false
+should_materialize_into(x̄::Array) = true
