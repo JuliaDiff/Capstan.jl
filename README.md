@@ -2,9 +2,9 @@
 
 Cassette-based automatic differentiation for the Julia language.
 
-**The code/examples in this package's git history were simply proof-of-concepts that were built on an earlier prototype of Cassette. Nothing here (besides this README) should be assumed to be representative of Capstan's planned direction/implementation.**
+**The implementation here is currently a WIP; the majority of the planned implementation does not even exist yet. Code may be added, removed, and changed daily. Try things out at your own risk, YMMV, etc.**
 
-Now that an initial version of Cassette has been released, work on a more serious implementation of Capstan has begun. Since Cassette's contextual tagging system (on which Capstan relies) depends on as-of-yet unimplemented compiler optimizations/bug fixes to obtain reasonable performance, Capstan will likely not see an initial release until several minor version bumps into the Julia 1.x release cycle.
+Now that an initial version of Cassette has been released, work on a more serious implementation of Capstan has begun. Since Cassette's contextual tagging system (on which Capstan will rely) depends on as-of-yet unimplemented compiler optimizations/bug fixes to obtain reasonable performance, Capstan will likely not see an initial release until several minor version bumps into the Julia 1.x release cycle.
 
 It's likely that not all of these features will make it into an initial release, but planned features include:
 
