@@ -10,7 +10,7 @@ TODO:
 =#
 
 include("markup.jl")
-include("properties.jl")
+include("rules.jl")
 include("defaults/variables.jl")
 include("defaults/functions.jl")
 
