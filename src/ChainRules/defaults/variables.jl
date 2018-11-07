@@ -10,7 +10,7 @@ TODO: Define the required methods to cover all relevant types from:
 #####
 
 description(args::Tuple) = map(description, args)
-description(::Function) = Func()
+description(::Any) = Ignore()
 description(::Real) = Scalar(RealDomain())
 description(::Complex) = Scalar(ComplexDomain())
 description(x::AbstractArray{<:Real}) = Tensor(RealDomain(), layout(x))
