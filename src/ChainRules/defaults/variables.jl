@@ -20,7 +20,8 @@ layout(x::Array) = Layout(length(x), size(x), true)
 
 should_increment(x̄) = true
 
-should_materialize_into(x̄) = true
+should_materialize_into(x̄) = false
+should_materialize_into(x̄::AbstractArray) = true
 
 #=
 TODO:

@@ -5,7 +5,7 @@ using Base.Broadcast: materialize, broadcasted
 #=
 TODO:
     - obviously more `rule`s, `layout`s, and `description`s
-    - macros implementations: `@sig`, `@sigtype`, `@forward_chain`, `@reverse_chain!`
+    - macros implementations: `@sig`, `@sigtype`
     - interface overloadability design pass
 =#
 
