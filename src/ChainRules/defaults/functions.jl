@@ -1,3 +1,10 @@
+#=
+TODO: Define the required methods to cover all relevant types from:
+    - StaticArrays
+    - Base
+    - LinearAlgebra
+=#
+
 #== `sin` ==#
 
 function forward_rule(::@sig(R → R), ::typeof(sin), x)
@@ -21,7 +28,9 @@ function forward_rule(::@sig(R → R⊗R), ::typeof(sincos), x)
 end
 
 function reverse_rule(::@sig(R → R⊗R), ::typeof(sincos), x)
-    # TODO
+    sinx, cosx = sincos(x)
+    return sinx, (x̄, z̄₁) -> reverse_chain!(x̄, @thunk(cosx * z̄₁))
+           cosx, (x̄, z̄₂) -> reverse_chain!(x̄, @thunk(-sinx * z̄₂))
 end
 
 #== `atan` ==#
@@ -30,6 +39,13 @@ function forward_rule(::@sig(R⊗R → R), ::typeof(atan), y, x)
     h = hypot(y, x)
     return atan(y, x),
            (ẏ, ẋ) -> forward_chain(@thunk(x / h), ẏ, @thunk(y / h), ẋ)
+end
+
+function reverse_rule(::@sig(R⊗R → R), ::typeof(atan), y, x)
+    h = hypot(y, x)
+    return atan(y, x),
+           (ȳ, x̄, z̄) -> (reverse_chain!(ȳ, @thunk((x / h) * z̄)),
+                         reverse_chain!(x̄, @thunk((y / h) * z̄)))
 end
 
 #== `sum` ==#

@@ -38,9 +38,9 @@ _forward_chain(∂x::Thunk, ẋ, args...) = broadcasted(+, _forward_chain(∂x, 
 
 @inline function reverse_chain!(x̄, ∂x::Thunk)
     thunk = ∂x()
-    casted = should_increment(x̄) ? broadcasted(+, x̄, thunk) : thunk
+    casted = should_increment(x̄) ? broadcasted(+, value(x̄), thunk) : thunk
     if should_materialize_into(x̄)
-        return materialize!(x̄, casted)
+        return materialize!(value(x̄), casted)
     else
         return materialize(casted)
     end
