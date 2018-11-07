@@ -1,32 +1,32 @@
 #== `sin` ==#
 
-function forward_rule(::@sigtype(R → R), ::typeof(sin), x)
+function forward_rule(::@sig(R → R), ::typeof(sin), x)
     sinx, cosx = sincos(x)
     return sinx, ẋ -> forward_chain(@thunk(cosx), ẋ)
 end
 
 #== `cos` ==#
 
-function forward_rule(::@sigtype(R → R), ::typeof(cos), x)
+function forward_rule(::@sig(R → R), ::typeof(cos), x)
     sinx, cosx = sincos(x)
     return cosx, ẋ -> forward_chain(@thunk(-sinx), ẋ)
 end
 
 #== `sincos` ==#
 
-function forward_rule(::@sigtype(R → R⊗R), ::typeof(sincos), x)
+function forward_rule(::@sig(R → R⊗R), ::typeof(sincos), x)
     sinx, cosx = sincos(x)
     return sinx, ẋ -> forward_chain(cosx, ẋ),
            cosx, ẋ -> forward_chain(@thunk(-sinx), ẋ)
 end
 
-function reverse_rule(::@sigtype(R → R⊗R), ::typeof(sincos), x)
+function reverse_rule(::@sig(R → R⊗R), ::typeof(sincos), x)
     # TODO
 end
 
 #== `atan` ==#
 
-function forward_rule(::@sigtype(R⊗R → R), ::typeof(atan), y, x)
+function forward_rule(::@sig(R⊗R → R), ::typeof(atan), y, x)
     h = hypot(y, x)
     return atan(y, x),
            (ẏ, ẋ) -> forward_chain(@thunk(x / h), ẏ, @thunk(y / h), ẋ)
@@ -34,14 +34,14 @@ end
 
 #== `sum` ==#
 
-function reverse_rule(::@sigtype([R] → R), ::typeof(sum), x)
+function reverse_rule(::@sig([R] → R), ::typeof(sum), x)
     return sum(x),
            (x̄, z̄) -> reverse_chain!(x̄, @thunk(z̄))
 end
 
 #== `+` ==#
 
-function reverse_rule(::@sigtype([R]⊗[R] → R), ::typeof(+), x, y)
+function reverse_rule(::@sig([R]⊗[R] → R), ::typeof(+), x, y)
     return x + y,
            (x̄, ȳ, z̄) -> (reverse_chain!(x̄, @thunk(z̄)),
                          reverse_chain!(ȳ, @thunk(z̄)))
@@ -49,7 +49,7 @@ end
 
 #== `*` ==#
 
-function reverse_rule(::@sigtype([R]⊗[R] → R), ::typeof(*), x, y)
+function reverse_rule(::@sig([R]⊗[R] → R), ::typeof(*), x, y)
     return x * y,
            (x̄, ȳ, z̄) -> (reverse_chain!(x̄, @thunk(z̄ * y')),
                          reverse_chain!(ȳ, @thunk(x' * z̄)))
@@ -57,8 +57,8 @@ end
 
 #== `map` ==#
 
-function reverse_rule(::@sigtype(F{R → R}⊗[R] → [R]), ::typeof(map), f, x)
-    f_sig = @sig(R → R)
+function reverse_rule(::@sig(F⊗[R] → [R]), ::typeof(map), f, x)
+    f_sig = Signature((Scalar(RealDomain()),), (Scalar(RealDomain()),))
     f_rule = x -> begin
         y, d = forward_rule(f_sig, f, x)
         y, d(one(x))
