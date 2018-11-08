@@ -13,10 +13,7 @@ end
 
 function forward_rule(::@sig(C → C), ::typeof(sin), x)
     sinx, cosx = sincos(x)
-    # TODO: Does this convention for Wirtinger derivatives even make sense?
-    # For example, should we just have one chain function that returns a tuple
-    # instead of two chain functions?
-    return sinx, ẋ -> forward_chain(@thunk(cosx), ẋ), ẋ -> false
+    return sinx, ẋ -> (forward_chain(@thunk(cosx), ẋ), false)
 end
 
 #== `cos` ==#
@@ -24,6 +21,11 @@ end
 function forward_rule(::@sig(R → R), ::typeof(cos), x)
     sinx, cosx = sincos(x)
     return cosx, ẋ -> forward_chain(@thunk(-sinx), ẋ)
+end
+
+function forward_rule(::@sig(C → C), ::typeof(cos), x)
+    sinx, cosx = sincos(x)
+    return cosx, ẋ -> (forward_chain(@thunk(-sinx), ẋ), false)
 end
 
 #== `sincos` ==#
@@ -48,12 +50,15 @@ function forward_rule(::@sig(R⊗R → R), ::typeof(atan), y, x)
            (ẏ, ẋ) -> forward_chain(@thunk(x / h), ẏ, @thunk(y / h), ẋ)
 end
 
-function reverse_rule(::@sig(R⊗R → R), ::typeof(atan), y, x)
-    h = hypot(y, x)
-    return atan(y, x),
-           (ȳ, x̄, z̄) -> (reverse_chain!(ȳ, @thunk((x / h) * z̄)),
-                         reverse_chain!(x̄, @thunk((y / h) * z̄)))
+#== `conj` ==#
+
+function forward_rule(::@sig(C → C), ::typeof(conj), x)
+    return conj(x), ẋ -> (false, true)
 end
+
+#== `log` ==#
+
+# TODO
 
 #== `sum` ==#
 
@@ -80,6 +85,7 @@ end
 
 #== `map` ==#
 
+
 function reverse_rule(::@sig(_⊗[R] → [R]), ::typeof(map), f, x)
     f_sig = Signature((Scalar(RealDomain()),), (Scalar(RealDomain()),))
     f_rule = x -> begin
@@ -99,19 +105,16 @@ end
 function reverse_rule(::@sig(_⊗[C] → [C]), ::typeof(map), f, x)
     f_sig = Signature((Scalar(ComplexDomain()),), (Scalar(ComplexDomain()),))
     f_rule = x -> begin
-        y, d, d⁺ = forward_rule(f_sig, f, x)
-        y, d(one(x)), d⁺(oftype(x, im)) # TODO: Is this even the right seeding at all? Probably not...
+        y, d = forward_rule(f_sig, f, x)
+        y, d(one(x) + im) # TODO: Is this even the right seeding at all?
     end
     # TODO: Same allocation/temporaries issue as the real-valued version above.
     # Additionally, it's unclear whether this is even the right way to do
     # Wirtinger-style reverse propagation...
     applied_f_rule = map(f_rule, x)
     values = map(first, applied_f_rule)
-    primal_derivs = map(((x, y, z),) -> y, applied_f_rule)
-    conjugate_derivs = map(last, applied_f_rule)
-    # TODO: Same issue as in the complex forward-mode example above; is the right
-    # return convention for a reverse-mode complex primitive?
+    primal_derivs = map(((x, (y, y⁺)),) -> y, applied_f_rule)
+    conjugate_derivs = map(((x, (y, y⁺)),) -> y⁺, applied_f_rule)
     return values,
-           (x̄, z̄) -> reverse_chain!(x̄, @thunk(broadcasted(*, primal_derivs, z̄)))
-           (x̄, z̄) -> reverse_chain!(x̄, @thunk(broadcasted(*, conjugate_derivs, z̄)))
+            # TODO how to write the reverse-mode Wirtinger derivative propagation?
 end
