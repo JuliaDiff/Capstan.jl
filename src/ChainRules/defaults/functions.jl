@@ -32,13 +32,13 @@ end
 
 function forward_rule(::@sig(R → R⊗R), ::typeof(sincos), x)
     sinx, cosx = sincos(x)
-    return sinx, ẋ -> forward_chain(cosx, ẋ),
+    return sinx, ẋ -> forward_chain(@thunk(cosx), ẋ),
            cosx, ẋ -> forward_chain(@thunk(-sinx), ẋ)
 end
 
 function reverse_rule(::@sig(R → R⊗R), ::typeof(sincos), x)
     sinx, cosx = sincos(x)
-    return sinx, (x̄, z̄₁) -> reverse_chain!(x̄, @thunk(cosx * z̄₁))
+    return sinx, (x̄, z̄₁) -> reverse_chain!(x̄, @thunk(cosx * z̄₁)),
            cosx, (x̄, z̄₂) -> reverse_chain!(x̄, @thunk(-sinx * z̄₂))
 end
 
@@ -84,7 +84,6 @@ function reverse_rule(::@sig([R]⊗[R] → R), ::typeof(*), x, y)
 end
 
 #== `map` ==#
-
 
 function reverse_rule(::@sig(_⊗[R] → [R]), ::typeof(map), f, x)
     f_sig = Signature((Scalar(RealDomain()),), (Scalar(RealDomain()),))
