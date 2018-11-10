@@ -21,12 +21,31 @@ inject their contexts post-hoc.
 
 Thus, that's the interface for downstream AD tools to support mixed-mode chain
 rules; just overload these `forward_rule`/`reverse_rule` fallbacks w.r.t. their
-own contexts via Cassette.
+own contexts via Cassette. Example using ForwardDiff:
+
+```
+using ChainRules, ForwardDiff, Cassette
+
+Cassette.@context MyChainRuleCtx
+
+# ForwardDiff, itself, can call `my_forward_rule` instead of
+# `forward_rule` to utilize the ChainRules infrastructure
+my_forward_rule(args...) = Cassette.overdub(MyChainRuleCtx(), forward_rule, args...)
+
+function Cassette.execute(::MyChainRuleCtx, ::typeof(forward_rule)
+                          ::@sig(R → R), f, x)
+    result = forward_rule(sig, f, x)
+    if isa(result, Nothing)
+        result = (f(x), ẋ -> ẋ * ForwardDiff.derivative(f, x))
+    end
+    return result
+end
+```
 =#
 
-forward_rule(::Signature, ::Any, ::Vararg{Any}) = nothing
+forward_rule(::Signature, ::Vararg{Any}) = nothing
 
-reverse_rule(::Signature, ::Any, ::Vararg{Any}) = nothing
+reverse_rule(::Signature, ::Vararg{Any}) = nothing
 
 #####
 ##### `Thunk`
