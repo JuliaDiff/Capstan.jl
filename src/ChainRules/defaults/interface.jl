@@ -23,12 +23,7 @@ description(x::AbstractArray{<:Complex}) = Tensor(ComplexDomain(), layout(x))
 layout(x::Array) = Layout(length(x), size(x), true)
 
 #####
-##### adjoint interface
+##### `should_materialize_into`
 #####
 
-value(x̄) = x̄
-
-should_increment(x̄) = true
-
-should_materialize_into(x̄::Number) = false
-should_materialize_into(x̄::Array) = true
+should_materialize_into(::Array) = true

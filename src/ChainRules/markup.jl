@@ -37,6 +37,11 @@ struct Signature{I <: Tuple{Vararg{AbstractArgument}},
     output::O
 end
 
+Signature(x, y) = Signature(tuplify(x), tuplify(y))
+
+tuplify(x) = tuple(x)
+tuplify(x::Tuple) = x
+
 input_count(sig::Signature) = sum(element_count, sig.input)
 
 output_count(sig::Signature) = sum(element_count, sig.output)
@@ -54,6 +59,14 @@ abstract type AbstractVariable <: AbstractArgument end
 struct Scalar{D <: AbstractDomain} <: AbstractVariable
     domain::D
 end
+
+const RealScalar = Scalar{RealDomain}
+
+(::Type{<:RealScalar})() = Scalar(RealDomain())
+
+const ComplexScalar = Scalar{ComplexDomain}
+
+(::Type{<:ComplexScalar})() = Scalar(ComplexDomain())
 
 struct Tensor{D <: AbstractDomain, L <: AbstractLayout} <: AbstractVariable
     domain::D

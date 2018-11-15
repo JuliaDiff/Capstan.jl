@@ -1,5 +1,5 @@
 #####
-##### rules
+##### `forward_rule`/`reverse_rule`
 #####
 #=
 There's an idea at play here that's not made explicit in these fallbacks. In
@@ -29,23 +29,24 @@ using ChainRules, ForwardDiff, Cassette
 Cassette.@context MyChainRuleCtx
 
 # ForwardDiff, itself, can call `my_forward_rule` instead of
-# `forward_rule` to utilize the ChainRules infrastructure
+# `forward_rule` to utilize the ForwardDiff-injected ChainRules
+# infrastructure
 my_forward_rule(args...) = Cassette.overdub(MyChainRuleCtx(), forward_rule, args...)
 
 function Cassette.execute(::MyChainRuleCtx, ::typeof(forward_rule)
                           ::@sig(R → R), f, x)
-    result = forward_rule(sig, f, x)
-    if isa(result, Nothing)
-        result = (f(x), ẋ -> ẋ * ForwardDiff.derivative(f, x))
+    fx, df = forward_rule(sig, f, x)
+    if isa(ḟ, Nothing)
+        fx, df = (f(x), ẋ -> ẋ * ForwardDiff.derivative(f, x))
     end
-    return result
+    return fx, df
 end
 ```
 =#
 
-forward_rule(::Signature, ::Vararg{Any}) = nothing
+forward_rule(::Signature, ::Vararg{Any}) = (nothing, nothing)
 
-reverse_rule(::Signature, ::Vararg{Any}) = nothing
+reverse_rule(::Signature, ::Vararg{Any}) = (nothing, nothing)
 
 #####
 ##### `Thunk`
@@ -79,13 +80,20 @@ _forward_chain(∂x::Thunk, ẋ, args...) = broadcasted(+, _forward_chain(∂x, 
 
 @inline function reverse_chain!(x̄, ∂x::Thunk)
     thunk = ∂x()
-    casted = should_increment(x̄) ? broadcasted(+, value(x̄), thunk) : thunk
+    x̄_value = adjoint_value(x̄)
+    casted = should_increment(x̄) ? broadcasted(+, x̄_value, thunk) : thunk
     if should_materialize_into(x̄)
-        return materialize!(value(x̄), casted)
+        return materialize!(x̄_value, casted)
     else
         return materialize(casted)
     end
 end
+
+adjoint_value(x̄) = x̄
+
+should_increment(::Any) = true
+
+should_materialize_into(::Any) = false
 
 #####
 ##### TODO
