@@ -19,9 +19,13 @@ end
 ##### `forward_rule`
 #####
 
-forward_rule(::@sig(R → R), ::typeof(sin), x) = sin(x), ẋ -> forward_chain(@thunk(cos(x), ẋ))
+function forward_rule(::@sig(R → R), ::typeof(sin), x)
+    return sin(x), ẋ -> forward_chain(@thunk(cos(x), ẋ))
+end
 
-forward_rule(::@sig(R → R), ::typeof(cos), x) = cos(x), ẋ -> forward_chain(@thunk(-sin(x)), ẋ)
+function forward_rule(::@sig(R → R), ::typeof(cos), x)
+    return cos(x), ẋ -> forward_chain(@thunk(-sin(x)), ẋ)
+end
 
 function forward_rule(::@sig(R → R⊗R), ::typeof(sincos), x)
     sinx, cosx = sincos(x)
@@ -35,7 +39,9 @@ function forward_rule(::@sig(R⊗R → R), ::typeof(atan), y, x)
            (ẏ, ẋ) -> forward_chain(@thunk(x / h), ẏ, @thunk(y / h), ẋ)
 end
 
-forward_rule(::@sig(R → R), ::typeof(log), x) = log(x), ẋ -> forward_chain(@thunk(inv(x)), ẋ)
+function forward_rule(::@sig(R → R), ::typeof(log), x)
+    return log(x), ẋ -> forward_chain(@thunk(inv(x)), ẋ)
+end
 
 forward_rule(::@sig(C → C), ::typeof(conj), x) = conj(x), ẋ -> (false, true)
 
