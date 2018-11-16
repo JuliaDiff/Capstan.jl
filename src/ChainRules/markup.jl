@@ -4,14 +4,22 @@
 
 abstract type AbstractLayout end
 
-struct Layout{C<:Union{Int,Val},S} <: AbstractLayout
-    count::C
-    shape::S
+struct CPUDevice end
+
+struct Layout{L, S, D} <: AbstractLayout
+    length::L
+    size::S
+    device::D
     ismutable::Bool
 end
 
-element_count(layout::Layout{Int}) = layout.count
-element_count(::Layout{Val{count}}) where {count} = count
+Base.length(layout::Layout) = layout.length
+
+Base.size(layout::Layout) = layout.size
+
+device(layout::Layout) = layout.device
+
+ismutable(layout::Layout) = layout.ismutable
 
 #####
 ##### `AbstractDomain`
@@ -37,7 +45,7 @@ struct Signature{I <: Tuple{Vararg{AbstractArgument}},
     output::O
 end
 
-Signature(x, y) = Signature(tuplify(x), tuplify(y))
+Signature(input, output) = Signature(tuplify(x), tuplify(y))
 
 tuplify(x) = tuple(x)
 tuplify(x::Tuple) = x
@@ -62,16 +70,24 @@ end
 
 const RealScalar = Scalar{RealDomain}
 
-(::Type{<:RealScalar})() = Scalar(RealDomain())
+RealScalar() = Scalar(RealDomain())
 
 const ComplexScalar = Scalar{ComplexDomain}
 
-(::Type{<:ComplexScalar})() = Scalar(ComplexDomain())
+ComplexScalar() = Scalar(ComplexDomain())
 
 struct Tensor{D <: AbstractDomain, L <: AbstractLayout} <: AbstractVariable
     domain::D
     layout::L
 end
+
+const RealTensor = Tensor{RealDomain}
+
+RealTensor(layout) = Tensor(RealDomain(), layout)
+
+const ComplexTensor = Tensor{ComplexDomain}
+
+ComplexTensor(layout) = Tensor(ComplexDomain(), layout)
 
 element_count(::Scalar) = 1
 element_count(t::Tensor) = element_count(t.layout)
